@@ -5,6 +5,10 @@ on:
     - cron: '16 16 * * *' # 北京时间每天 00:16 运行
   workflow_dispatch: # 允许手动触发
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
 
   update-ip-list:
