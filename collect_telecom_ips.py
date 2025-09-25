@@ -5,11 +5,9 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-# 目标网页
 URL = 'https://www.wetest.vip/page/cloudflare/address_v4.html'
 IP_PATTERN = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
 OUTPUT_FILE = 'ip.txt'
-TSL_PORTS = ["443", "8443", "2053", "2083", "2087", "2096"]
 MAX_IPS = 5  # 最多保留5个电信IP
 
 try:
@@ -43,11 +41,8 @@ if len(telecom_ips) < MAX_IPS:
     needed = MAX_IPS - len(telecom_ips)
     telecom_ips.extend(unique_ips[:needed])
 
-# 添加端口和备注
-result = []
-for ip in telecom_ips:
-    for port in TSL_PORTS:
-        result.append(f"{ip}:{port}#官方优选")
+# 每个 IP 只保留一条记录，并添加官方优选备注
+result = [f"{ip}#官方优选" for ip in telecom_ips]
 
 # 写入文件
 with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
