@@ -2,7 +2,7 @@ name: Update IP List
 
 on:
   schedule:
-    - cron: '16 16 * * *' # 北京时间每天 00:16 运行
+    - cron: '0 */3 * * *' # 每3小时整点触发一次
   workflow_dispatch: # 允许手动触发
 
 permissions:
@@ -50,4 +50,3 @@ jobs:
           git push
         else
           echo "No changes detected, skipping commit."
-        fi
