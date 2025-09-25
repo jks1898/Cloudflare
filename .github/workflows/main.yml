@@ -2,7 +2,7 @@ name: Update Telecom IP List
 
 on:
   schedule:
-    - cron: '0 * * * *'  # 每小时整点
+    - cron: '0 * * * *'  # 每小时整点触发
   workflow_dispatch:
 
 permissions:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up Python
@@ -33,9 +33,11 @@ jobs:
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Action"
         git status
+        # 只在文件有变动时 commit
         if [ -n "$(git status --porcelain)" ]; then
           git add ip.txt
           git commit -m "Automatic update of telecom IPs"
           git push
         else
           echo "No changes detected, skipping commit."
+        fi
