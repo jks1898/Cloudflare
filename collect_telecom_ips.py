@@ -3,13 +3,7 @@ from bs4 import BeautifulSoup
 import re
 import os
 
-# 目标URL
 url = 'https://www.wetest.vip/page/cloudflare/address_v4.html'
-
-# 匹配电信IP的正则（CT）
-ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
-
-# ip.txt文件路径
 ip_file = 'ip.txt'
 
 # 删除旧文件
@@ -19,35 +13,33 @@ if os.path.exists(ip_file):
 try:
     response = requests.get(url, timeout=5)
     response.raise_for_status()
-    html = response.text
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-    # 提取所有IP
-    ips = re.findall(ip_pattern, html)
+    # 正则匹配 IPv4
+    ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+    telecom_ips = []
 
-    # 只筛选电信IP（CT）
-    # 注意：网页中电信IP通常在文本中带有“CT”标识
-    ct_ips = []
-    for line in html.splitlines():
-        if 'CT' in line:
-            ct_ips += re.findall(ip_pattern, line)
-    # 去重
-    ct_ips = list(dict.fromkeys(ct_ips))
-    
-    # 只取前 5 个
-    selected_ips = ct_ips[:5]
+    # 遍历表格行，找电信 IP
+    rows = soup.find_all('tr')
+    for row in rows:
+        cells = row.find_all('td')
+        if len(cells) >= 2:
+            carrier = cells[0].get_text().strip()
+            ip_cell = cells[1].get_text().strip()
+            if '电信' in carrier:
+                ip_match = re.search(ip_pattern, ip_cell)
+                if ip_match:
+                    telecom_ips.append(ip_match.group(0))
+        if len(telecom_ips) >= 5:
+            break
 
-    # 按端口优先顺序组合
-    ports = [443, 8443, 2053, 2083, 2087, 2096]
-    final_list = []
-    for ip in selected_ips:
-        final_list.append(f"{ip}:{ports[0]}#狮城")  # 默认选443端口
-
-    # 写入文件
-    with open(ip_file, 'w') as f:
-        for item in final_list:
-            f.write(item + '\n')
-
-    print(f"已保存 {len(final_list)} 个狮城电信IP到 {ip_file}。")
+    if telecom_ips:
+        with open(ip_file, 'w') as f:
+            for ip in telecom_ips:
+                f.write(f"{ip}:443#狮城\n")
+        print(f"已保存 {len(telecom_ips)} 个电信 IP 到 {ip_file}。")
+    else:
+        print("未找到电信 IP。")
 
 except requests.RequestException as e:
     print(f"请求失败: {e}")
