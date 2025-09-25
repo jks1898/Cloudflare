@@ -1,10 +1,13 @@
 name: Update IP List
 
 on:
+  # 每3小时整点触发一次
   schedule:
-    - cron: '0 */3 * * *' # 每3小时整点触发一次
-  workflow_dispatch: # 允许手动触发
+    - cron: '0 */3 * * *' 
+  # 允许手动触发
+  workflow_dispatch: 
 
+# 赋予工作流写入权限，用于提交代码和清理工作流运行记录
 permissions:
   contents: write
   actions: write
@@ -15,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -29,6 +33,7 @@ jobs:
         pip install beautifulsoup4
         
     - name: Delete workflow runs
+      # 清理旧的工作流运行记录，保留最近6次和2天内的记录
       uses: Mattraks/delete-workflow-runs@v2
       with:
         token: ${{ github.token }}
@@ -37,12 +42,15 @@ jobs:
         keep_minimum_runs: 6
         
     - name: Run script
+      # 运行您的Python脚本
       run: python ${{ github.workspace }}/collect_ips.py
         
     - name: Commit and push changes
+      # 修正了语法错误：添加了 'fi' 和分号，以确保命令正确执行
       run: |
-        git config --local user.email "actions@github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.email "actions@github.com";
+        git config --local user.name "GitHub Action";
+        # 检查是否有文件改动
         if [ -n "$(git status --porcelain)" ]; then
           git add ip.txt
           git add notslip.txt
@@ -50,3 +58,4 @@ jobs:
           git push
         else
           echo "No changes detected, skipping commit."
+        fi # 必须添加 fi 来结束 if 语句
