@@ -3,50 +3,31 @@ from bs4 import BeautifulSoup
 import re
 import os
 
-# 目标URL
 url = 'https://www.wetest.vip/page/cloudflare/address_v4.html'
 
-# 匹配IP的正则
+# 匹配 IPv4
 ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
 
-# 如果 ip.txt 存在就删除
+# 删除旧文件
 if os.path.exists('ip.txt'):
     os.remove('ip.txt')
-
-# 存储去重的电信IP
-telecom_ips = []
 
 try:
     response = requests.get(url, timeout=5)
     response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'html.parser')
-    rows = soup.find_all('tr')
-    
-    for row in rows:
-        if len(telecom_ips) >= 5:
-            break
-        cells = row.find_all('td')
-        if len(cells) >= 2:
-            carrier = cells[0].get_text(strip=True)
-            ip_cell = cells[1].get_text(strip=True)
-            ip_match = re.search(ip_pattern, ip_cell)
-            if ip_match and '电信' in carrier:
-                ip = ip_match.group(0)
-                if ip not in telecom_ips:
-                    telecom_ips.append(ip)
+    html_content = response.text
 
+    # 使用正则找到所有 IP
+    ip_matches = re.findall(ip_pattern, html_content)
+
+    # 筛选电信 IP（简单规则：第一位为 1-59 属电信网段，也可以结合 GeoIP 做精确判断）
+    telecom_ips = [ip for ip in ip_matches if ip.startswith(('1','27','36','39','58'))]
+
+    # 取前五个，并加备注“狮城”
+    top5 = telecom_ips[:5]
+    with open('ip.txt', 'w') as f:
+        for ip in top5:
+            f.write(f"{ip} # 狮城\n")
+    print(f"已保存 {len(top5)} 个电信 IP 到 ip.txt")
 except Exception as e:
-    print(f'获取或解析网页失败: {e}')
-
-# 默认端口
-tsl_ports = ["443", "8443", "2053", "2083", "2087", "2096"]
-
-# 写入 ip.txt
-if telecom_ips:
-    with open('ip.txt', 'w', encoding='utf-8') as f:
-        for ip in telecom_ips:
-            for port in tsl_ports:
-                f.write(f"{ip}:{port}#狮城\n")
-    print(f'已保存 {len(telecom_ips)} 个电信IP，每个端口6个，总计 {len(telecom_ips)*len(tsl_ports)} 条记录到 ip.txt')
-else:
-    print('未找到有效的电信IP')
+    print(f"拉取 IP 失败: {e}")
