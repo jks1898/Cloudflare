@@ -3,7 +3,7 @@ name: Update IP List
 on:
   # 每小时整点触发一次
   schedule:
-    - cron: '0 * * * *' 
+    - cron: '0 * * * *'
   # 允许手动触发
   workflow_dispatch: 
 
@@ -24,13 +24,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.x'
         
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests
-        pip install beautifulsoup4
+        pip install -r requirements.txt  # 如果没有 requirements.txt，可改回单独安装依赖
         
     - name: Delete workflow runs
       # 清理旧的工作流运行记录，保留最近6次和2天内的记录
@@ -42,20 +41,19 @@ jobs:
         keep_minimum_runs: 6
         
     - name: Run script
-      # 运行您的Python脚本
+      # 运行 Python 脚本
       run: python ${{ github.workspace }}/collect_ips.py
         
     - name: Commit and push changes
-      # 修正了语法错误：添加了 'fi' 和分号，以确保命令正确执行
       run: |
         git config --local user.email "actions@github.com";
         git config --local user.name "GitHub Action";
+        git status
         # 检查是否有文件改动
         if [ -n "$(git status --porcelain)" ]; then
-          git add ip.txt
-          git add notslip.txt
+          git add .
           git commit -m "Automatic update"
           git push
         else
           echo "No changes detected, skipping commit."
-        fi # 必须添加 fi 来结束 if 语句
+        fi
