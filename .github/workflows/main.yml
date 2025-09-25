@@ -34,9 +34,8 @@ jobs:
         git config --local user.name "GitHub Action"
         git status
         if [ -n "$(git status --porcelain)" ]; then
-          git add .
+          git add ip.txt
           git commit -m "Automatic update of telecom IPs"
           git push
         else
           echo "No changes detected, skipping commit."
-        fi
