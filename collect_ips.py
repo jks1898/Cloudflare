@@ -5,11 +5,12 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
+# 目标网页
 URL = 'https://www.wetest.vip/page/cloudflare/address_v4.html'
 IP_PATTERN = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
 OUTPUT_FILE = 'ip.txt'
 TSL_PORTS = ["443", "8443", "2053", "2083", "2087", "2096"]
-MAX_IPS = 5  # 最多保留 5 个电信IP
+MAX_IPS = 5  # 最多保留5个电信IP
 
 try:
     response = requests.get(URL, timeout=5)
