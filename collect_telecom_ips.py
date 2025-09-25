@@ -38,15 +38,14 @@ try:
 except Exception as e:
     print(f'获取或解析网页失败: {e}')
 
-# 默认端口
-tsl_ports = ["443", "8443", "2053", "2083", "2087", "2096"]
+# 只保留443端口
+port = "443"
 
 # 写入 ip.txt
 if telecom_ips:
     with open('ip.txt', 'w', encoding='utf-8') as f:
         for ip in telecom_ips:
-            for port in tsl_ports:
-                f.write(f"{ip}:{port}#狮城\n")
-    print(f'已保存 {len(telecom_ips)} 个电信IP，每个端口6个，总计 {len(telecom_ips)*len(tsl_ports)} 条记录到 ip.txt')
+            f.write(f"{ip}:{port}#狮城\n")
+    print(f'已保存 {len(telecom_ips)} 个电信IP，端口443，总计 {len(telecom_ips)} 条记录到 ip.txt')
 else:
     print('未找到有效的电信IP')
