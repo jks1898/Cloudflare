@@ -1,51 +1,38 @@
-import requests
-from bs4 import BeautifulSoup
-import re
-import os
+name: Update Telecom IPs
 
-# 目标URL
-url = 'https://www.wetest.vip/page/cloudflare/address_v4.html'
+on:
+  schedule:
+    # 每两小时的整点，UTC = 北京时间 -8小时
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # 手动触发
 
-# 匹配IP的正则
-ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+permissions:
+  contents: write
 
-# 如果 ip.txt 存在就删除
-if os.path.exists('ip.txt'):
-    os.remove('ip.txt')
+jobs:
+  update-ip-list:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-# 存储去重的电信IP
-telecom_ips = []
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-try:
-    response = requests.get(url, timeout=5)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'html.parser')
-    rows = soup.find_all('tr')
-    
-    for row in rows:
-        if len(telecom_ips) >= 5:
-            break
-        cells = row.find_all('td')
-        if len(cells) >= 2:
-            carrier = cells[0].get_text(strip=True)
-            ip_cell = cells[1].get_text(strip=True)
-            ip_match = re.search(ip_pattern, ip_cell)
-            if ip_match and '电信' in carrier:
-                ip = ip_match.group(0)
-                if ip not in telecom_ips:
-                    telecom_ips.append(ip)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
 
-except Exception as e:
-    print(f'获取或解析网页失败: {e}')
+      - name: Run collect_telecom_ips.py
+        run: python collect_telecom_ips.py
 
-# 只保留443端口
-port = "443"
-
-# 写入 ip.txt
-if telecom_ips:
-    with open('ip.txt', 'w', encoding='utf-8') as f:
-        for ip in telecom_ips:
-            f.write(f"{ip}:{port}#狮城\n")
-    print(f'已保存 {len(telecom_ips)} 个电信IP，端口443，总计 {len(telecom_ips)} 条记录到 ip.txt')
-else:
-    print('未找到有效的电信IP')
+      - name: Commit and push ip.txt
+        run: |
+          git config --local user.name "github-actions"
+          git config --local user.email "actions@github.com"
+          git add ip.txt
+          git commit -m "Update telecom IPs" || echo "No changes to commit"
+          git push
