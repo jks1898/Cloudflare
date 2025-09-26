@@ -40,8 +40,8 @@ try:
 except Exception as e:
     print(f'获取或解析网页失败: {e}')
 
-# 排序，按延迟升序（越小越快），取前 5
-telecom_ips = sorted(telecom_ips, key=lambda x: x[1])[:5]
+# 排序，按延迟升序（越小越快），取前 10
+telecom_ips = sorted(telecom_ips, key=lambda x: x[1])[:10]
 
 # 只有找到电信 IP 才写入，否则保留旧文件
 if telecom_ips:
