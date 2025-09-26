@@ -4,8 +4,8 @@ import re
 
 # 目标URL列表
 urls = [
-    'https://ip.164746.xyz/',  # 获取此网址上的 IP
-    'https://www.wetest.vip/page/cloudflare/address_v4.html',  # 获取云平台的电信IP
+    'https://ip.164746.xyz/',  
+    'https://www.wetest.vip/page/cloudflare/address_v4.html',
 ]
 
 # IP 匹配正则
@@ -55,7 +55,7 @@ for url in urls[1:]:
                 ip_matches = re.findall(ip_pattern, ip_cell)
                 telecom_ips.extend(ip_matches)
 
-# 写入文件，保持网页顺序，不去重、不输出日志
+# 写入文件，保持网页顺序
 if telecom_ips:
     with open('ip.txt', 'w', encoding='utf-8') as f:
         for ip in telecom_ips:
