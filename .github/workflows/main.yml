@@ -43,10 +43,12 @@ jobs:
       run: |
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Action"
-        if [ -n "$(git status --porcelain)" ]; then
+        STATUS=$(git status --porcelain)
+        if [ -n "$STATUS" ]; then
           git add ip.txt
           git add notslip.txt
           git commit -m "Automatic update"
           git push
         else
           echo "No changes detected, skipping commit."
+        fi
