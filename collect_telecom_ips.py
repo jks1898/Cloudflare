@@ -9,10 +9,6 @@ url = 'https://www.wetest.vip/page/cloudflare/address_v4.html'
 # 匹配IP的正则
 ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
 
-# 如果 ip.txt 存在就删除
-if os.path.exists('ip.txt'):
-    os.remove('ip.txt')
-
 # 存储 (IP, 峰值速度)
 telecom_ips = []
 
@@ -33,7 +29,7 @@ try:
             if ip_match and '电信' in carrier:
                 ip = ip_match.group(0)
 
-                # 解析速度（去掉非数字）
+                # 解析速度
                 try:
                     speed = float(re.sub(r'[^0-9.]', '', speed_text))
                 except:
@@ -47,11 +43,11 @@ except Exception as e:
 # 排序，取前 5
 telecom_ips = sorted(telecom_ips, key=lambda x: x[1], reverse=True)[:5]
 
-# 写入 ip.txt，只保留 443 端口
+# 只有找到电信 IP 才写入，否则保留旧文件
 if telecom_ips:
     with open('ip.txt', 'w', encoding='utf-8') as f:
         for ip, speed in telecom_ips:
             f.write(f"{ip}:443#狮城\n")
     print(f'已保存 {len(telecom_ips)} 个电信IP到 ip.txt (按峰值速度排序)')
 else:
-    print('未找到有效的电信IP')
+    print('未找到有效的电信IP，保留现有的 ip.txt')
