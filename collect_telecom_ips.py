@@ -13,36 +13,45 @@ ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
 if os.path.exists('ip.txt'):
     os.remove('ip.txt')
 
-# 存储去重的电信IP
+# 存储 (IP, 峰值速度)
 telecom_ips = []
 
 try:
-    response = requests.get(url, timeout=5)
+    response = requests.get(url, timeout=8)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     rows = soup.find_all('tr')
-    
+
     for row in rows:
-        if len(telecom_ips) >= 5:
-            break
         cells = row.find_all('td')
-        if len(cells) >= 2:
+        if len(cells) >= 3:  # 假设第3列是峰值速度
             carrier = cells[0].get_text(strip=True)
             ip_cell = cells[1].get_text(strip=True)
+            speed_text = cells[2].get_text(strip=True)
+
             ip_match = re.search(ip_pattern, ip_cell)
             if ip_match and '电信' in carrier:
                 ip = ip_match.group(0)
-                if ip not in telecom_ips:
-                    telecom_ips.append(ip)
+
+                # 解析速度（去掉非数字）
+                try:
+                    speed = float(re.sub(r'[^0-9.]', '', speed_text))
+                except:
+                    speed = 0.0
+
+                telecom_ips.append((ip, speed))
 
 except Exception as e:
     print(f'获取或解析网页失败: {e}')
 
-# 只保留 443 端口
+# 排序，取前 5
+telecom_ips = sorted(telecom_ips, key=lambda x: x[1], reverse=True)[:5]
+
+# 写入 ip.txt，只保留 443 端口
 if telecom_ips:
     with open('ip.txt', 'w', encoding='utf-8') as f:
-        for ip in telecom_ips:
+        for ip, speed in telecom_ips:
             f.write(f"{ip}:443#狮城\n")
-    print(f'已保存 {len(telecom_ips)} 个电信IP，每个仅写入 443 端口到 ip.txt')
+    print(f'已保存 {len(telecom_ips)} 个电信IP到 ip.txt (按峰值速度排序)')
 else:
     print('未找到有效的电信IP')
