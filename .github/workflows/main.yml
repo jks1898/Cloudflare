@@ -1,9 +1,9 @@
 name: Update Telecom IP List
 
 on:
-  # 每两小时整点触发（北京时间）
+  # 每个整点触发（北京时间）
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '0 * * * *'  # 每小时的整点触发一次
   # 手动触发
   workflow_dispatch:
 
