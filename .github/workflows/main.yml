@@ -3,7 +3,7 @@ name: Update IP List
 on:
   schedule:
     - cron: '0 * * * *'  # 每小时 UTC 整点运行
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch:    # 允许手动触发
 
 permissions:
   contents: write
@@ -37,7 +37,7 @@ jobs:
         keep_minimum_runs: 6
         
     - name: Run script
-      run: python ${{ github.workspace }}/collect_ips.py
+      run: python ${{ github.workspace }}/collect_telecom_ips.py
         
     - name: Commit and push changes
       run: |
@@ -50,4 +50,3 @@ jobs:
           git push
         else
           echo "No changes detected, skipping commit."
-        fi
