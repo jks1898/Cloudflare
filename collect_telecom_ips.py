@@ -25,36 +25,31 @@ if soup:
     rows = soup.find_all('tr')
     for row in rows:
         cells = row.find_all('td')
-        if len(cells) < 3:
+        if len(cells) < 3:  # 至少有运营商、IP、延迟
             continue
 
         carrier = cells[0].get_text(strip=True)
         ip_cell = cells[1].get_text(strip=True)
-        latency_text = cells[2].get_text(strip=True)  # 网页里的“往返延迟”列
+        latency_text = cells[2].get_text(strip=True)
 
         if '电信' in carrier:
-            # 提取所有 IP 地址
             ip_matches = re.findall(ip_pattern, ip_cell)
-            if ip_matches:
-                # 处理延迟文本去除 ms 单位
-                try:
-                    latency = float(latency_text.replace("ms", "").strip())
-                except ValueError:
-                    latency = float('inf')  # 无法解析放到最后
-                for ip in ip_matches:
-                    telecom_ips.append((ip, latency))
+            try:
+                latency = float(latency_text.replace("ms","").strip())
+            except ValueError:
+                latency = float('inf')  # 无法解析放到最后
+            for ip in ip_matches:
+                telecom_ips.append((ip, latency))
+                print(f"发现电信IP: {ip}, 延迟: {latency}")  # 调试输出
 
-# 按网页“往返延迟”列从小到大排序
-telecom_ips_sorted = sorted(
-    [item for item in telecom_ips if item[1] != float('inf')],
-    key=lambda x: x[1]
-)
+# 按延迟从小到大排序
+telecom_ips_sorted = sorted(telecom_ips, key=lambda x: x[1])
 
-# 判断是否有有效的电信 IP 并写入文件
+# 写入文件
 if telecom_ips_sorted:
     with open('ip.txt', 'w', encoding='utf-8') as f:
-        for ip, _ in telecom_ips_sorted[:10]:  # 可限制保存数量
+        for ip, _ in telecom_ips_sorted:
             f.write(f"{ip}:443#官方优选\n")
-    print(f'已保存 {len(telecom_ips_sorted)} 个电信IP到 ip.txt (按网页往返延迟排序)')
+    print(f'已保存 {len(telecom_ips_sorted)} 个电信IP到 ip.txt (按往返延迟排序)')
 else:
-    print('未找到有效的电信IP，保留现有的 ip.txt')
+    print('未找到电信IP，保留现有 ip.txt')
