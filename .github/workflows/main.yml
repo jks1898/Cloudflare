@@ -40,3 +40,4 @@ jobs:
             git push
           else
             echo "No changes detected, skipping commit."
+          fi
