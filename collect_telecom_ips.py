@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import os
 import heapq
 
 # 目标URL
@@ -53,14 +52,14 @@ if soup:
 
             telecom_ips.append((ip, latency))
 
-# 获取前 5 个延迟最小的电信IP
-top_telecom_ips = heapq.nsmallest(5, telecom_ips, key=lambda x: x[1])
+# 排序并获取前 5 个延迟最小的电信IP（虽然只剩下5个，所以这里只是一个排序操作）
+telecom_ips_sorted = sorted(telecom_ips, key=lambda x: x[1])
 
 # 只有找到电信 IP 才写入，否则保留旧文件
-if top_telecom_ips:
+if telecom_ips_sorted:
     with open('ip.txt', 'w', encoding='utf-8') as f:
-        for ip, latency in top_telecom_ips:
+        for ip, latency in telecom_ips_sorted:
             f.write(f"{ip}:443#官方优选\n")
-    print(f'已保存 {len(top_telecom_ips)} 个电信IP到 ip.txt (按往返延迟排序)')
+    print(f'已保存 {len(telecom_ips_sorted)} 个电信IP到 ip.txt (按往返延迟排序)')
 else:
     print('未找到有效的电信IP，保留现有的 ip.txt')
