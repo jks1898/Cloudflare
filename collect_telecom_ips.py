@@ -4,7 +4,7 @@ import re
 
 # 目标URL列表
 urls = [
-    'https://ip.164746.xyz/',  # 直接获取此网址上的 IP
+    'https://ip.164746.xyz/',  # 获取此网址上的 IP
     'https://www.wetest.vip/page/cloudflare/address_v4.html',  # 获取云平台的电信IP
 ]
 
@@ -21,20 +21,18 @@ try:
     response = requests.get(urls[0], timeout=8)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
-except Exception as e:
-    print(f'获取网址 {urls[0]} 失败: {e}')
+except Exception:
     soup = None
 
 if soup:
     rows = soup.find_all('tr')
     for row in rows:
         cells = row.find_all('td')
-        if len(cells) < 1:  # 如果没有足够的列数据跳过
+        if len(cells) < 1:
             continue
         ip_cell = cells[0].get_text(strip=True)
         ip_matches = re.findall(ip_pattern, ip_cell)
-        for ip in ip_matches:
-            telecom_ips.append(ip)  # 只保存 IP
+        telecom_ips.extend(ip_matches)
 
 # 获取 https://www.wetest.vip/page/cloudflare/address_v4.html 的电信IP
 for url in urls[1:]:
@@ -42,30 +40,23 @@ for url in urls[1:]:
         response = requests.get(url, timeout=8)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
-    except Exception as e:
-        print(f'获取网页失败 {url}: {e}')
+    except Exception:
         continue
 
     if soup:
         rows = soup.find_all('tr')
         for row in rows:
             cells = row.find_all('td')
-            if len(cells) < 2:  # 必须有足够的列
+            if len(cells) < 2:
                 continue
-
             carrier = cells[0].get_text(strip=True)
             ip_cell = cells[1].get_text(strip=True)
-
             if '电信' in carrier:
                 ip_matches = re.findall(ip_pattern, ip_cell)
-                for ip in ip_matches:
-                    telecom_ips.append(ip)
+                telecom_ips.extend(ip_matches)
 
-# 如果找到了IP才写入文件
+# 写入文件，保持网页顺序，不去重、不输出日志
 if telecom_ips:
     with open('ip.txt', 'w', encoding='utf-8') as f:
         for ip in telecom_ips:
-            f.write(f"{ip}:443#官方优选\n")
-    print(f'已保存 {len(telecom_ips)} 个IP到 ip.txt')
-else:
-    print('未找到IP，保留现有 ip.txt')
+            f.write(f"{ip}:443#官方\n")
