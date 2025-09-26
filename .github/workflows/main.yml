@@ -46,9 +46,7 @@ jobs:
         STATUS=$(git status --porcelain)
         if [ -n "$STATUS" ]; then
           git add ip.txt
-          git add notslip.txt
           git commit -m "Automatic update"
           git push
         else
           echo "No changes detected, skipping commit."
-        fi
