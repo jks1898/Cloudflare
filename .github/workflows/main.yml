@@ -30,12 +30,6 @@ jobs:
       - name: Run script
         run: python ${{ github.workspace }}/collect_telecom_ips.py
 
-      - name: Clean, deduplicate, and sort ip.txt
-        run: |
-          if [ -f ip.txt ]; then
-            sort -u ip.txt -o ip.txt
-          fi
-
       - name: Commit and push changes
         run: |
           git config --local user.email "actions@github.com"
@@ -46,4 +40,3 @@ jobs:
             git push
           else
             echo "No changes detected, skipping commit."
-          fi
