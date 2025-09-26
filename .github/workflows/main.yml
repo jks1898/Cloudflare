@@ -34,11 +34,12 @@ jobs:
 
     - name: Check if IP list updated
       run: |
+        # 检查是否有文件变化，如果有变化则执行 commit 操作
         if [ -n "$(git status --porcelain)" ]; then
           echo "Changes detected."
         else
           echo "No changes detected, skipping commit."
-          exit 0  # Exit early if no changes
+          exit 0  # 如果没有变化，退出当前步骤
         fi
 
     - name: Commit and push changes
