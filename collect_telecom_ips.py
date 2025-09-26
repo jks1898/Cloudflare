@@ -30,19 +30,19 @@ if soup:
 
         carrier = cells[0].get_text(strip=True)
         ip_cell = cells[1].get_text(strip=True)
-        latency_text = cells[2].get_text(strip=True)
+        latency_text = cells[2].get_text(strip=True)  # 网页里的“往返延迟”列
 
         if '电信' in carrier:
             ip_matches = re.findall(ip_pattern, ip_cell)
             try:
-                latency = float(latency_text.replace("ms","").strip())
+                # 尝试将“ms”去除并转为浮动数值
+                latency = float(latency_text.replace("ms", "").strip())
             except ValueError:
-                latency = float('inf')  # 无法解析放到最后
+                latency = float('inf')  # 无法解析时设为最大值
             for ip in ip_matches:
                 telecom_ips.append((ip, latency))
-                print(f"发现电信IP: {ip}, 延迟: {latency}")  # 调试输出
 
-# 按延迟从小到大排序
+# 按网页中的“往返延迟”进行排序
 telecom_ips_sorted = sorted(telecom_ips, key=lambda x: x[1])
 
 # 写入文件
