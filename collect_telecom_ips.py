@@ -21,9 +21,9 @@ try:
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     rows = soup.find_all('tr')
-
+    
     for row in rows:
-        if len(telecom_ips) >= 5:  # 只要前5个电信IP
+        if len(telecom_ips) >= 5:
             break
         cells = row.find_all('td')
         if len(cells) >= 2:
@@ -38,15 +38,11 @@ try:
 except Exception as e:
     print(f'获取或解析网页失败: {e}')
 
-# 全部端口
-tsl_ports = ["443", "8443", "2053", "2083", "2087", "2096"]
-
-# 写入 ip.txt
+# 只保留 443 端口
 if telecom_ips:
     with open('ip.txt', 'w', encoding='utf-8') as f:
         for ip in telecom_ips:
-            for port in tsl_ports:
-                f.write(f"{ip}:{port}#狮城\n")
-    print(f'已保存 {len(telecom_ips)} 个电信IP，每个端口6个，总计 {len(telecom_ips)*len(tsl_ports)} 条记录到 ip.txt')
+            f.write(f"{ip}:443#狮城\n")
+    print(f'已保存 {len(telecom_ips)} 个电信IP，每个仅写入 443 端口到 ip.txt')
 else:
     print('未找到有效的电信IP')
