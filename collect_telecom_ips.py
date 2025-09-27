@@ -55,8 +55,8 @@ for url in urls[1:]:
                 ip_matches = re.findall(ip_pattern, ip_cell)
                 telecom_ips.extend(ip_matches)
 
-# 写入文件，保持网页顺序 —— 格式：IP:443#官方优选
+# 写入文件，保持网页顺序 —— 格式：IP:443#电信
 if telecom_ips:
     with open('addressesapi.txt', 'w', encoding='utf-8') as f:
         for ip in telecom_ips:
-            f.write(f"{ip}:443#官方优选\n")
+            f.write(f"{ip}:443#电信\n")
