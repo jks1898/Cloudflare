@@ -45,7 +45,7 @@ jobs:
         git config --local user.name "GitHub Action"
         STATUS=$(git status --porcelain)
         if [ -n "$STATUS" ]; then
-          git add ip.txt
+          git add addressesapi.txt
           git commit -m "Automatic update"
           git push
         else
