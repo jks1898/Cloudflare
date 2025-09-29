@@ -23,9 +23,6 @@ try:
 except Exception as e:
     print(f"Error fetching {url}: {e}")
 
-# 排序 + 只取前 9 个
-top_ips = sorted(all_ips)[:9]
-
 with open("addressesapi.txt", "w") as f:
-    for ip in top_ips:
+    for ip in sorted(all_ips):
         f.write(f"{ip} #电信\n")
