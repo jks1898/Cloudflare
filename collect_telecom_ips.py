@@ -2,7 +2,7 @@ import requests
 import re
 
 # 目标URL
-url = 'https://ip.164746.xyz/ipTop10.html'
+url = 'https://raw.githubusercontent.com/ZhiXuanWang/cf-speed-dns/refs/heads/main/ipTop10.html'
 
 # 获取 HTML 内容
 response = requests.get(url)
