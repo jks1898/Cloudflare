@@ -1,18 +1,35 @@
 import requests
+import re
+import os
 
 # 目标 URL
-url = 'https://raw.githubusercontent.com/ZhiXuanWang/cf-speed-dns/refs/heads/main/ipTop10.html'
+url = 'https://www.wetest.vip/page/cloudflare/total_v4.html'
 
-# 获取内容
-response = requests.get(url)
-content = response.text.strip()
+# IP 匹配正则
+ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
 
-# 按逗号分割 IP
-ips = [ip.strip() for ip in content.split(',')]
+# 如果 addressapi.txt 存在，则删除
+if os.path.exists('addressapi.txt'):
+    os.remove('addressapi.txt')
 
-# 写入文件并备注 CT
-with open("addressesapi.txt", "w") as f:
-    for ip in ips:
-        f.write(f"{ip} #CT\n")
+try:
+    # 请求网页内容
+    response = requests.get(url, timeout=5)
+    response.raise_for_status()
+    html_content = response.text
 
-print(f"共拉取 {len(ips)} 个 IP，已写入 addressesapi.txt，并加上备注 #CT")
+    # 提取所有 IP
+    ips = re.findall(ip_pattern, html_content)
+
+    # 去重并排序
+    unique_ips = sorted(set(ips), key=lambda ip: [int(part) for part in ip.split('.')])
+
+    # 写入 addressapi.txt
+    with open('addressapi.txt', 'w', encoding='utf-8') as f:
+        for ip in unique_ips:
+            f.write(f"{ip} #CT\n")
+
+    print(f"共抓取 {len(unique_ips)} 个 IP，已写入 addressapi.txt 文件。")
+
+except requests.exceptions.RequestException as e:
+    print(f"请求 {url} 失败: {e}")
