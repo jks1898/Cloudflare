@@ -3,52 +3,43 @@ import re
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# 目标 URL 列表
-urls = [
-    'https://ip.164746.xyz/',
-    'https://www.wetest.vip/page/cloudflare/total_v4.html'
-]
+url = 'https://www.wetest.vip/page/cloudflare/total_v4.html'
 
-# 匹配 IPv4 地址的正则（严格写法）
-ip_pattern = (
-    r'\b(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.'
-    r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.'
-    r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.'
-    r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b'
-)
+# 匹配 IPv4 和电信延迟的正则
+ip_pattern = r'(\b(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
+             r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
+             r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
+             r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b).*?电信延迟.*?(\d+)\s*毫秒'
 
 # Session + 重试
 session = requests.Session()
-retries = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+retries = Retry(total=3, backoff_factor=1, status_forcelist=[500,502,503,504])
 session.mount("http://", HTTPAdapter(max_retries=retries))
 session.mount("https://", HTTPAdapter(max_retries=retries))
 
-# 伪装 UA
 headers = {"User-Agent": "Mozilla/5.0 (compatible; IPCollector/1.0)"}
 
-all_ips = []
-
 try:
-    for url in urls:
-        response = session.get(url, headers=headers, timeout=5)
-        response.raise_for_status()
-        html_content = response.text
+    response = session.get(url, headers=headers, timeout=5)
+    response.raise_for_status()
+    html_content = response.text
 
-        # 提取所有合法 IP
-        ips = re.findall(ip_pattern, html_content)
-        all_ips.extend(ips)
+    # 提取 IP + 延迟
+    matches = re.findall(ip_pattern, html_content, flags=re.S)
+    ip_delay_list = [(ip, int(delay)) for ip, delay in matches]
 
-        print(f"从 {url} 抓取到 {len(ips)} 个 IP")
+    # 按延迟升序排序
+    ip_delay_list.sort(key=lambda x: x[1])
 
-    # 去重但保留顺序
-    unique_ips = list(dict.fromkeys(all_ips))
+    # 取前 8 个 IP
+    top_ips = [ip for ip, _ in ip_delay_list[:8]]
 
-    # 覆盖写入 addressesapi.txt
+    # 写入文件
     with open('addressesapi.txt', 'w', encoding='utf-8') as f:
-        for ip in unique_ips:
+        for ip in top_ips:
             f.write(f"{ip} #CT\n")
 
-    print(f"总共写入 {len(unique_ips)} 个唯一 IP 到 addressesapi.txt 文件。")
+    print(f"抓取 {len(top_ips)} 个延迟最低的 IP 完成。")
 
 except requests.exceptions.RequestException as e:
     print(f"请求失败: {e}")
