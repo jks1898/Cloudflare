@@ -25,4 +25,4 @@ except Exception as e:
 
 with open("addressesapi.txt", "w") as f:
     for ip in sorted(all_ips):
-        f.write(f"{ip} #电信\n")
+        f.write(f"{ip} #CT\n")
