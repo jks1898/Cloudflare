@@ -2,61 +2,27 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-# 目标URL列表
-urls = [
-    'https://ip.164746.xyz/',  
-    'https://www.wetest.vip/page/cloudflare/address_v4.html',
-]
+# 只从这个地址获取
+url = 'https://ip.164746.xyz/'
 
-# IP 匹配正则
+# 匹配 IPv4 地址
 ip_pattern = r'\b(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
              r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
              r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
              r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
 
-telecom_ips = []
+all_ips = set()
 
-# 获取 https://ip.164746.xyz/ 的 IP
 try:
-    response = requests.get(urls[0], timeout=8)
+    response = requests.get(url, timeout=10)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
-except Exception:
-    soup = None
+    text = soup.get_text()
+    ips = re.findall(ip_pattern, text)
+    all_ips.update(ips)
+except Exception as e:
+    print(f"Error fetching {url}: {e}")
 
-if soup:
-    rows = soup.find_all('tr')
-    for row in rows:
-        cells = row.find_all('td')
-        if len(cells) < 1:
-            continue
-        ip_cell = cells[0].get_text(strip=True)
-        ip_matches = re.findall(ip_pattern, ip_cell)
-        telecom_ips.extend(ip_matches)
-
-# 获取 https://www.wetest.vip/page/cloudflare/address_v4.html 的电信IP
-for url in urls[1:]:
-    try:
-        response = requests.get(url, timeout=8)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-    except Exception:
-        continue
-
-    if soup:
-        rows = soup.find_all('tr')
-        for row in rows:
-            cells = row.find_all('td')
-            if len(cells) < 2:
-                continue
-            carrier = cells[0].get_text(strip=True)
-            ip_cell = cells[1].get_text(strip=True)
-            if '电信' in carrier:
-                ip_matches = re.findall(ip_pattern, ip_cell)
-                telecom_ips.extend(ip_matches)
-
-# 写入文件，保持网页顺序 —— 格式：IP#官方
-if telecom_ips:
-    with open('addressesapi.txt', 'w', encoding='utf-8') as f:
-        for ip in telecom_ips:
-            f.write(f"{ip}#官方\n")
+with open("addressesapi.txt", "w") as f:
+    for ip in sorted(all_ips):
+        f.write(f"{ip} #电信\n")
