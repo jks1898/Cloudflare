@@ -3,8 +3,11 @@ import re
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# 目标 URL
-url = 'https://www.wetest.vip/page/cloudflare/total_v4.html'
+# 目标 URL 列表
+urls = [
+    'https://www.wetest.vip/page/cloudflare/total_v4.html',
+    'https://ip.164746.xyz/'
+]
 
 # 匹配 IPv4 地址的正则（严格写法）
 ip_pattern = (
@@ -23,21 +26,29 @@ session.mount("https://", HTTPAdapter(max_retries=retries))
 # 伪装 UA
 headers = {"User-Agent": "Mozilla/5.0 (compatible; IPCollector/1.0)"}
 
-try:
-    # 请求网页内容
-    response = session.get(url, headers=headers, timeout=5)
-    response.raise_for_status()
-    html_content = response.text
+all_ips = []
 
-    # 提取所有合法 IP（允许重复）
-    ips = re.findall(ip_pattern, html_content)
+try:
+    for url in urls:
+        response = session.get(url, headers=headers, timeout=5)
+        response.raise_for_status()
+        html_content = response.text
+
+        # 提取所有合法 IP
+        ips = re.findall(ip_pattern, html_content)
+        all_ips.extend(ips)
+
+        print(f"从 {url} 抓取到 {len(ips)} 个 IP")
+
+    # 去重但保留顺序
+    unique_ips = list(dict.fromkeys(all_ips))
 
     # 覆盖写入 addressesapi.txt
     with open('addressesapi.txt', 'w', encoding='utf-8') as f:
-        for ip in ips:
+        for ip in unique_ips:
             f.write(f"{ip} #CT\n")
 
-    print(f"共抓取 {len(ips)} 个 IP（含重复），已写入 addressesapi.txt 文件。")
+    print(f"总共写入 {len(unique_ips)} 个唯一 IP 到 addressesapi.txt 文件。")
 
 except requests.exceptions.RequestException as e:
-    print(f"请求 {url} 失败: {e}")
+    print(f"请求失败: {e}")
