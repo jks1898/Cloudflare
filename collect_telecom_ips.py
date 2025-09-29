@@ -5,8 +5,8 @@ from urllib3.util.retry import Retry
 
 # 目标 URL 列表
 urls = [
-    'https://www.wetest.vip/page/cloudflare/total_v4.html',
-    'https://ip.164746.xyz/'
+    'https://ip.164746.xyz/',
+    'https://www.wetest.vip/page/cloudflare/total_v4.html'
 ]
 
 # 匹配 IPv4 地址的正则（严格写法）
