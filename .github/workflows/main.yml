@@ -2,8 +2,8 @@ name: Update IP List
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 每 3 小时 UTC 整点运行
-  workflow_dispatch:       # 允许手动触发
+    - cron: '0 1-23/2 * * *'  # 每个 UTC 奇数整点运行
+  workflow_dispatch:          # 允许手动触发
 
 permissions:
   contents: write
@@ -25,19 +25,18 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests
-        pip install beautifulsoup4
+        pip install requests beautifulsoup4
         
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
       with:
-        token: ${{ github.token }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         repository: ${{ github.repository }}
         retain_days: 2
         keep_minimum_runs: 6
         
     - name: Run script
-      run: python ${{ github.workspace }}/collect_telecom_ips.py
+      run: python collect_telecom_ips.py
         
     - name: Commit and push changes
       run: |
@@ -45,7 +44,7 @@ jobs:
         git config --local user.name "GitHub Action"
         STATUS=$(git status --porcelain)
         if [ -n "$STATUS" ]; then
-          git add addressesapi.txt
+          git add .
           git commit -m "Automatic update"
           git push
         else
