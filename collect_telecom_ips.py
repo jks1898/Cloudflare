@@ -1,16 +1,11 @@
 import requests
 import re
-import os
 
 # 目标 URL
 url = 'https://www.wetest.vip/page/cloudflare/total_v4.html'
 
 # IP 匹配正则
 ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
-
-# 如果 addressapi.txt 存在，则删除
-if os.path.exists('addressapi.txt'):
-    os.remove('addressapi.txt')
 
 try:
     # 请求网页内容
@@ -24,7 +19,7 @@ try:
     # 去重并排序
     unique_ips = sorted(set(ips), key=lambda ip: [int(part) for part in ip.split('.')])
 
-    # 写入 addressapi.txt
+    # 写入 addressapi.txt（覆盖保存）
     with open('addressapi.txt', 'w', encoding='utf-8') as f:
         for ip in unique_ips:
             f.write(f"{ip} #CT\n")
