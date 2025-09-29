@@ -23,6 +23,7 @@ try:
 except Exception as e:
     print(f"Error fetching {url}: {e}")
 
+# 只写入前五个 IP
 with open("addressesapi.txt", "w") as f:
-    for ip in sorted(all_ips):
+    for ip in sorted(all_ips)[:5]:
         f.write(f"{ip} #CT\n")
