@@ -16,15 +16,12 @@ try:
     # 提取所有 IP
     ips = re.findall(ip_pattern, html_content)
 
-    # 去重并按数字顺序排序
-    unique_ips = sorted(set(ips), key=lambda ip: [int(part) for part in ip.split('.')])
-
-    # 覆盖写入 addressesapi.txt
+    # 覆盖写入 addressesapi.txt，保留原始顺序
     with open('addressesapi.txt', 'w', encoding='utf-8') as f:
-        for ip in unique_ips:
+        for ip in ips:
             f.write(f"{ip} #CT\n")
 
-    print(f"共抓取 {len(unique_ips)} 个 IP，已写入 addressesapi.txt 文件。")
+    print(f"共抓取 {len(ips)} 个 IP，已写入 addressesapi.txt 文件。")
 
 except requests.exceptions.RequestException as e:
     print(f"请求 {url} 失败: {e}")
