@@ -31,8 +31,8 @@ try:
     # 按延迟升序排序
     ip_delay_list.sort(key=lambda x: x[1])
 
-    # 取前 8 个 IP
-    top_ips = [ip for ip, _ in ip_delay_list[:8]]
+    # 取前 5 个 IP
+    top_ips = [ip for ip, _ in ip_delay_list[:5]]
 
     # 写入文件
     with open('addressesapi.txt', 'w', encoding='utf-8') as f:
