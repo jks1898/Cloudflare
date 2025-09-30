@@ -2,8 +2,8 @@ name: Update IP List
 
 on:
   schedule:
-    - cron: '0 1-23/2 * * *'  # 每个 UTC 奇数整点运行
-  workflow_dispatch:          # 允许手动触发
+    - cron: '0 0 * * *'  # 每天北京时间早上 8 点运行 (UTC 0 点)
+  workflow_dispatch:      # 允许手动触发
 
 permissions:
   contents: write
