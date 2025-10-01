@@ -17,7 +17,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -29,16 +30,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: Run script
+      - name: Run IP collection script
         run: |
-          # 直接运行抓取脚本
           python collect_telecom_ips.py
 
-      - name: Commit and push changes
+      - name: Commit and push updates
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Action"
           STATUS=$(git status --porcelain)
+          echo "Git status: $STATUS"
           if [ -n "$STATUS" ]; then
             git add addressesapi.txt
             git commit -m "Automatic update"
