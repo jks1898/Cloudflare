@@ -2,7 +2,7 @@ name: Update IP List
 
 on:
   schedule:
-    # 主触发：UTC 0:00 和 12:00 对应香港 08:00 和 20:00
+    # 主触发：UTC 0:00 和 12:00，对应香港 08:00 和 20:00
     - cron: '0 0,12 * * *'
     # 自检触发：每 15 分钟检查一次，补漏
     - cron: '*/15 * * * *'
@@ -40,11 +40,16 @@ jobs:
         HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
         echo "HK Hour: $HOUR, Last update: $LAST_UPDATE"
 
-        # 只在香港 08:00 或 20:00 执行，且当天该时间点未更新
-        if [[ ("$HOUR" == "08" || "$HOUR" == "20") && "$LAST_UPDATE" != "$TODAY-$HOUR" ]]; then
-          echo "update=true" >> $GITHUB_OUTPUT
+        # 兼容 sh 的写法
+        if [ "$HOUR" = "08" ] || [ "$HOUR" = "20" ]; then
+          if [ "$LAST_UPDATE" != "$TODAY-$HOUR" ]; then
+            echo "update=true" >> $GITHUB_OUTPUT
+          else
+            echo "update=false" >> $GITHUB_OUTPUT
+          fi
         else
           echo "update=false" >> $GITHUB_OUTPUT
+        fi
 
     # 运行抓取脚本（只在需要更新时）
     - name: Run script
