@@ -15,61 +15,58 @@ permissions:
 jobs:
   update-ip-list:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests beautifulsoup4
+      - uses: actions/checkout@v3
 
-    # 自检逻辑，确保每天 HK 08:00 / 20:00 更新
-    - name: Check HK time and last update
-      id: check_update
-      run: |
-        mkdir -p .github/data
-        LAST_UPDATE_FILE=".github/data/last_update.txt"
-        LAST_UPDATE=$(cat $LAST_UPDATE_FILE 2>/dev/null || echo "")
-        TODAY=$(TZ="Asia/Hong_Kong" date +'%Y-%m-%d')
-        HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
-        echo "HK Hour: $HOUR, Last update: $LAST_UPDATE"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-        # 兼容 sh 的写法
-        if [ "$HOUR" = "08" ] || [ "$HOUR" = "20" ]; then
-          if [ "$LAST_UPDATE" != "$TODAY-$HOUR" ]; then
-            echo "update=true" >> $GITHUB_OUTPUT
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: Check HK time and last update
+        id: check_update
+        run: |
+          mkdir -p .github/data
+          LAST_UPDATE_FILE=".github/data/last_update.txt"
+          LAST_UPDATE=$(cat $LAST_UPDATE_FILE 2>/dev/null || echo "")
+          TODAY=$(TZ="Asia/Hong_Kong" date +'%Y-%m-%d')
+          HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
+          echo "HK Hour: $HOUR, Last update: $LAST_UPDATE"
+
+          if [ "$HOUR" = "08" ] || [ "$HOUR" = "20" ]; then
+            if [ "$LAST_UPDATE" != "$TODAY-$HOUR" ]; then
+              echo "update=true" >> $GITHUB_OUTPUT
+            else
+              echo "update=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "update=false" >> $GITHUB_OUTPUT
           fi
-        else
-          echo "update=false" >> $GITHUB_OUTPUT
-        fi
 
-    # 运行抓取脚本（只在需要更新时）
-    - name: Run script
-      if: steps.check_update.outputs.update == 'true'
-      run: |
-        python collect_telecom_ips.py
-        TODAY=$(TZ="Asia/Hong_Kong" date +'%Y-%m-%d')
-        HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
-        echo "$TODAY-$HOUR" > .github/data/last_update.txt
+      - name: Run script
+        if: steps.check_update.outputs.update == 'true'
+        run: |
+          python collect_telecom_ips.py
+          TODAY=$(TZ="Asia/Hong_Kong" date +'%Y-%m-%d')
+          HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
+          echo "$TODAY-$HOUR" > .github/data/last_update.txt
 
-    # 提交和推送更新
-    - name: Commit and push changes
-      if: steps.check_update.outputs.update == 'true'
-      run: |
-        git config --local user.email "actions@github.com"
-        git config --local user.name "GitHub Action"
-        STATUS=$(git status --porcelain)
-        if [ -n "$STATUS" ]; then
-          git add .
-          git commit -m "Automatic update"
-          git push
-        else
-          echo "No changes detected, skipping commit."
+      - name: Commit and push changes
+        if: steps.check_update.outputs.update == 'true'
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Action"
+          STATUS=$(git status --porcelain)
+          if [ -n "$STATUS" ]; then
+            git add .
+            git commit -m "Automatic update"
+            git push
+          else
+            echo "No changes detected, skipping commit."
+          fi
