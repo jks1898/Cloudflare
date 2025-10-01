@@ -1,47 +1,45 @@
-name: Update IP List
+import requests
+import re
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
-on:
-  schedule:
-    # UTC 0:00 和 12:00 对应香港 08:00 和 20:00
-    - cron: '0 0,12 * * *'
-    # 每小时一次自检，确保漏掉的触发可以补上
-    - cron: '0 * * * *'
-  workflow_dispatch:
+url = 'https://www.wetest.vip/page/cloudflare/total_v4.html'
 
-permissions:
-  contents: write
-  actions: write
+# 匹配 IPv4 和电信延迟的正则
+ip_pattern = r'(\b(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
+             r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
+             r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
+             r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b).*?电信延迟.*?(\d+)\s*毫秒'
 
-jobs:
-  update-ip-list:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests beautifulsoup4
-        
-    - name: Run script with retry
-      run: |
-        for i in 1 2 3; do
-          python collect_telecom_ips.py && break || echo "Attempt $i failed, retrying..."
-          sleep 10
-        done
-        
-    - name: Commit and push changes if any
-      run: |
-        git config --local user.email "actions@github.com"
-        git config --local user.name "GitHub Action"
-        if [ -n "$(git status --porcelain)" ]; then
-          git add .
-          git commit -m "Automatic update"
-          git push
-        else
-          echo "No changes detected, skipping commit."
+# Session + 重试
+session = requests.Session()
+retries = Retry(total=3, backoff_factor=1, status_forcelist=[500,502,503,504])
+session.mount("http://", HTTPAdapter(max_retries=retries))
+session.mount("https://", HTTPAdapter(max_retries=retries))
+
+headers = {"User-Agent": "Mozilla/5.0 (compatible; IPCollector/1.0)"}
+
+try:
+    response = session.get(url, headers=headers, timeout=5)
+    response.raise_for_status()
+    html_content = response.text
+
+    # 提取 IP + 延迟
+    matches = re.findall(ip_pattern, html_content, flags=re.S)
+    ip_delay_list = [(ip, int(delay)) for ip, delay in matches]
+
+    # 按延迟升序排序
+    ip_delay_list.sort(key=lambda x: x[1])
+
+    # 取前 5 个 IP
+    top_ips = [ip for ip, _ in ip_delay_list[:5]]
+
+    # 写入文件
+    with open('addressesapi.txt', 'w', encoding='utf-8') as f:
+        for ip in top_ips:
+            f.write(f"{ip} #CT\n")
+
+    print(f"抓取 {len(top_ips)} 个延迟最低的 IP 完成。")
+
+except requests.exceptions.RequestException as e:
+    print(f"请求失败: {e}")
