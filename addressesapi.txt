@@ -3,5 +3,6 @@
 172.64.144.196#CT
 172.64.155.48#CT
 104.18.33.249#CT
-cf.090227.xyz#CT
-ct.877774.xyz#CT
+nrtcfdns.zone.id#CT
+fn.130519.xyz#CT
+nrt.xxxxxxxx.nyc.mn#CT
