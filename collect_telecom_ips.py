@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import re
 import time
+import re
 
 # ---------- 配置 ----------
 url = "https://www.wetest.vip/page/cloudflare/total_v4.html"
@@ -19,20 +19,22 @@ driver = webdriver.Chrome(options=chrome_options)
 driver.get(url)
 time.sleep(5)  # 等待 JS 渲染完成
 
-html_content = driver.page_source
+# ---------- 定位表格行 ----------
+rows = driver.find_elements("css selector", "table tbody tr")
+ip_delay_list = []
+
+for row in rows:
+    cells = row.find_elements("tag name", "td")
+    if len(cells) >= 4:
+        ip = cells[0].text.strip()
+        delay_text = cells[3].text.strip()  # 第4列是电信延迟(节点)
+        match = re.search(r'(\d+)', delay_text)
+        if match:
+            ip_delay_list.append((ip, int(match.group(1))))
+
 driver.quit()
 
-# ---------- 正则抓取 IP + 电信延迟(节点) ----------
-# 匹配类似 "1.2.3.4" 后面紧跟 "电信延迟(节点)" 和数字
-pattern = r'(\b(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
-          r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
-          r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.' \
-          r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b).*?电信延迟\(节点\).*?(\d+)'
-
-matches = re.findall(pattern, html_content, flags=re.S)
-
-# ---------- 转换成列表并按延迟升序 ----------
-ip_delay_list = [(ip.strip(), int(delay)) for ip, delay in matches]
+# ---------- 按延迟升序排序 ----------
 ip_delay_list.sort(key=lambda x: x[1])
 
 # ---------- 取前三个网页抓取 IP ----------
