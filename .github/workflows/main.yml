@@ -2,11 +2,13 @@ name: Update IP List
 
 on:
   schedule:
-    # 主触发：UTC 0:00 和 12:00，对应香港 08:00 和 20:00
-    - cron: '0 0,12 * * *'
-    # 自检触发：每 15 分钟检查一次，补漏
-    - cron: '*/15 * * * *'
-  workflow_dispatch:  # 支持手动触发
+    # 香港 08 点（UTC 0 点）
+    - cron: '0 0 * * *'     # 08:00 HK
+    - cron: '5 0 * * *'     # 08:05 HK
+    # 香港 20 点（UTC 12 点）
+    - cron: '0 12 * * *'    # 20:00 HK
+    - cron: '5 12 * * *'    # 20:05 HK
+  workflow_dispatch:  # 手动触发
 
 permissions:
   contents: write
