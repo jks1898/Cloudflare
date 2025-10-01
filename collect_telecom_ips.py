@@ -26,20 +26,26 @@ try:
 
     # 提取 IP + 延迟
     matches = re.findall(ip_pattern, html_content, flags=re.S)
-    ip_delay_list = [(ip, int(delay)) for ip, delay in matches]
+    ip_delay_list = [(ip.strip(), int(delay)) for ip, delay in matches]
 
     # 按延迟升序排序
     ip_delay_list.sort(key=lambda x: x[1])
 
-    # 取前 5 个 IP
-    top_ips = [ip for ip, _ in ip_delay_list[:5]]
+    # 网页抓取的前三名 IP
+    top_ips_from_web = [ip for ip, _ in ip_delay_list[:3]]
+
+    # 固定前两名优选域名
+    fixed_domains = ["cf.090227.xyz#CT", "cf.877774.xyz#CT"]
+
+    # 合并成最终列表（前两名固定域名 + 三个网页抓取 IP）
+    final_list = fixed_domains + [f"{ip}#CT" for ip in top_ips_from_web]
 
     # 写入文件
     with open('addressesapi.txt', 'w', encoding='utf-8') as f:
-        for ip in top_ips:
-            f.write(f"{ip} #CT\n")
+        for entry in final_list:
+            f.write(f"{entry}\n")
 
-    print(f"抓取 {len(top_ips)} 个延迟最低的 IP 完成。")
+    print(f"生成 addressesapi.txt，内容如下：{final_list}")
 
 except requests.exceptions.RequestException as e:
     print(f"请求失败: {e}")
