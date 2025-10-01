@@ -4,7 +4,7 @@ import re
 
 # ---------- 配置 ----------
 url = "https://www.wetest.vip/page/cloudflare/total_v4.html"
-fixed_domains = ["cf.090227.xyz#CT", "nrtcfdns.zone.id#CT"]
+fixed_domains = ["cf.090227.xyz#CT", "ct.877774.xyz#CT"]
 output_file = "addressesapi.txt"
 
 # ---------- 请求网页 ----------
@@ -33,11 +33,12 @@ for row in rows:
 # ---------- 按延迟升序排序 ----------
 ip_delay_list.sort(key=lambda x: x[1])
 
-# ---------- 取前三个网页抓取 IP ----------
-top_ips_from_web = [ip for ip, _ in ip_delay_list[:3]]
+# ---------- 取前五个网页抓取 IP ----------
+top_ips_from_web = [ip for ip, _ in ip_delay_list[:5]]
 
 # ---------- 合并最终列表 ----------
-final_list = fixed_domains + [f"{ip}#CT" for ip in top_ips_from_web]
+# 先 5 个 IP，再 2 个固定域名
+final_list = [f"{ip}#CT" for ip in top_ips_from_web] + fixed_domains
 
 # ---------- 写入文件 ----------
 with open(output_file, 'w', encoding='utf-8') as f:
