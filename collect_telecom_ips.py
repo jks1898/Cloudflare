@@ -4,7 +4,7 @@ import re
 
 # ---------- 配置 ----------
 url = "https://www.wetest.vip/page/cloudflare/total_v4.html"
-fixed_domains = ["cf.090227.xyz#CT", "cf.877774.xyz#CT"]
+fixed_domains = ["cf.090227.xyz#CT", "ct.877774.xyz#CT"]
 output_file = "addressesapi.txt"
 
 # ---------- 请求网页 ----------
