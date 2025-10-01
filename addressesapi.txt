@@ -1,5 +1,5 @@
 cf.090227.xyz#CT
-mfa.gov.ua#CT
+nrtcfdns.zone.id#CT
 172.64.153.73#CT
 172.64.145.245#CT
 172.64.144.196#CT
