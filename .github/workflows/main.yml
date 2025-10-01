@@ -3,11 +3,9 @@ name: Update IP List
 on:
   schedule:
     # 香港 08 点（UTC 0 点）
-    - cron: '0 0 * * *'     # 08:00 HK
-    - cron: '5 0 * * *'     # 08:05 HK
+    - cron: '0 0 * * *'
     # 香港 20 点（UTC 12 点）
-    - cron: '0 12 * * *'    # 20:00 HK
-    - cron: '5 12 * * *'    # 20:05 HK
+    - cron: '0 12 * * *'
   workflow_dispatch:  # 手动触发
 
 permissions:
@@ -31,44 +29,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: Check HK time and last update
-        id: check_update
-        run: |
-          mkdir -p .github/data
-          LAST_UPDATE_FILE=".github/data/last_update.txt"
-          LAST_UPDATE=$(cat $LAST_UPDATE_FILE 2>/dev/null || echo "")
-          TODAY=$(TZ="Asia/Hong_Kong" date +'%Y-%m-%d')
-          HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
-          echo "HK Hour: $HOUR, Last update: $LAST_UPDATE"
-
-          if [ "$HOUR" = "08" ] || [ "$HOUR" = "20" ]; then
-            if [ "$LAST_UPDATE" != "$TODAY-$HOUR" ]; then
-              echo "update=true" >> $GITHUB_OUTPUT
-            else
-              echo "update=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "update=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Run script
-        if: steps.check_update.outputs.update == 'true'
         run: |
+          # 直接运行抓取脚本
           python collect_telecom_ips.py
-          TODAY=$(TZ="Asia/Hong_Kong" date +'%Y-%m-%d')
-          HOUR=$(TZ="Asia/Hong_Kong" date +'%H')
-          echo "$TODAY-$HOUR" > .github/data/last_update.txt
 
       - name: Commit and push changes
-        if: steps.check_update.outputs.update == 'true'
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Action"
           STATUS=$(git status --porcelain)
           if [ -n "$STATUS" ]; then
-            git add .
+            git add addressesapi.txt
             git commit -m "Automatic update"
             git push
           else
             echo "No changes detected, skipping commit."
-          fi
