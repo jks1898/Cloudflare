@@ -2,11 +2,10 @@ name: Update IP List
 
 on:
   schedule:
-    # 香港 08 点（UTC 0 点）
+    # 定时更新：香港 08 点（UTC 0 点）和 20 点（UTC 12 点）
     - cron: '0 0 * * *'
-    # 香港 20 点（UTC 12 点）
     - cron: '0 12 * * *'
-    # 自检任务：08:10 和 20:10（UTC 对应 00:10 和 12:10）
+    # 自检任务：08:10 和 20:10（UTC 0:10 和 12:10）
     - cron: '10 0 * * *'
     - cron: '10 12 * * *'
   workflow_dispatch:  # 手动触发
@@ -34,24 +33,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: Run IP collection script and log
+      - name: Run IP collection script
         run: |
           echo "=== Running IP collection script ==="
           python collect_telecom_ips.py | tee output.log
           echo "=== Script finished ==="
+          # 清理未跟踪日志文件，避免 workflow 报 exit code 1
+          rm -f output.log
 
       - name: Commit and push updates
         run: |
           git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name "GitHub Actions"
 
-          STATUS=$(git status --porcelain)
-          echo "Git status: $STATUS"
+          # 同步远程 master，防止非快进拒绝
+          git fetch origin master
+          if ! git rebase origin/master; then
+            echo "Rebase failed, aborting..."
+            git rebase --abort
+            exit 1
+          fi
 
-          if [ -n "$STATUS" ]; then
-            git add addressesapi.txt
+          # 检查文件变化并提交
+          git add addressesapi.txt
+          if ! git diff --cached --quiet; then
             git commit -m "Automatic update $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-            git push
+            git push origin master
           else
             echo "No changes detected, skipping commit."
           fi
@@ -59,6 +66,7 @@ jobs:
   self-check:
     if: github.event.schedule == '10 0 * * *' || github.event.schedule == '10 12 * * *'
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -69,7 +77,7 @@ jobs:
           NOW=$(date +%s)
           DIFF=$((NOW - LAST_COMMIT))
           echo "Last commit was $DIFF seconds ago"
-          # 如果超过 600 秒(10分钟)，说明没准点更新，触发 workflow_dispatch
+
           if [ $DIFF -gt 600 ]; then
             echo "Missed update, triggering manual run..."
             gh workflow run "Update IP List"
