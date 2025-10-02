@@ -2,85 +2,54 @@ name: Update IP List
 
 on:
   schedule:
-    # 定时更新：香港 08 点（UTC 0 点）和 20 点（UTC 12 点）
-    - cron: '0 0 * * *'
-    - cron: '0 12 * * *'
-    # 自检任务：08:10 和 20:10（UTC 0:10 和 12:10）
-    - cron: '10 0 * * *'
-    - cron: '10 12 * * *'
-  workflow_dispatch:  # 手动触发
-
-permissions:
-  contents: write
-  actions: write
+    # 每天香港时间 08:00 和 20:00
+    - cron: '0 0 * * *'  # UTC 0 点 → 香港 08:00
+    - cron: '0 12 * * *' # UTC 12 点 → 香港 20:00
+  workflow_dispatch: # 手动触发
 
 jobs:
-  update-ip-list:
-    if: github.event.schedule == '0 0 * * *' || github.event.schedule == '0 12 * * *' || github.event_name == 'workflow_dispatch'
+  update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          python-version: '3.9'
+          persist-credentials: true
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
-
-      - name: Run IP collection script
-        run: |
-          echo "=== Running IP collection script ==="
-          python collect_telecom_ips.py | tee output.log
-          echo "=== Script finished ==="
-          # 清理未跟踪日志文件，避免 workflow 报 exit code 1
-          rm -f output.log
-
-      - name: Commit and push updates
+      - name: Set Git user
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          # 同步远程 master，防止非快进拒绝
-          git fetch origin master
-          if ! git rebase origin/master; then
-            echo "Rebase failed, aborting..."
-            git rebase --abort
-            exit 1
+      - name: Stash local changes
+        run: |
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes to stash"
+          else
+            git stash push -m "auto-stash-before-update"
           fi
 
-          # 检查文件变化并提交
+      - name: Pull latest changes
+        run: git pull --rebase origin master
+
+      - name: Apply stashed changes
+        run: |
+          if git stash list | grep -q "auto-stash-before-update"; then
+            git stash pop
+          else
+            echo "No stash to apply"
+          fi
+
+      - name: Run Python script
+        run: python3 collect_telecom_ips.py
+
+      - name: Commit and push updates
+        run: |
           git add addressesapi.txt
           if ! git diff --cached --quiet; then
-            git commit -m "Automatic update $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git commit -m "Update addressesapi.txt [skip ci]"
             git push origin master
           else
-            echo "No changes detected, skipping commit."
-          fi
-
-  self-check:
-    if: github.event.schedule == '10 0 * * *' || github.event.schedule == '10 12 * * *'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Check last commit time
-        run: |
-          LAST_COMMIT=$(git log -1 --format=%ct addressesapi.txt || echo 0)
-          NOW=$(date +%s)
-          DIFF=$((NOW - LAST_COMMIT))
-          echo "Last commit was $DIFF seconds ago"
-
-          if [ $DIFF -gt 600 ]; then
-            echo "Missed update, triggering manual run..."
-            gh workflow run "Update IP List"
-          else
-            echo "Update succeeded, no action needed."
+            echo "No changes to commit"
           fi
