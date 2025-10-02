@@ -5,8 +5,7 @@ import re
 # ---------- 配置 ----------
 url = "https://www.wetest.vip/page/cloudflare/total_v4.html"
 fixed_domains = [
-    "youxuan.cf.090227.xyz#CT",
-    "dx.changchen.filegear-sg.me#CT"
+    "youxuan.cf.090227.xyz#CT"
 ]
 output_file = "addressesapi.txt"
 
