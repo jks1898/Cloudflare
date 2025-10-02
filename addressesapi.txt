@@ -1,8 +1,8 @@
-172.64.153.33#CT
-172.64.159.175#CT
-104.18.43.55#CT
-172.64.38.182#CT
-172.64.150.45#CT
-nrtcfdns.zone.id#CT
-fn.130519.xyz#CT
-nrt.xxxxxxxx.nyc.mn#CT
+172.64.153.123#CT
+172.64.159.169#CT
+104.18.43.219#CT
+172.64.38.110#CT
+172.64.150.112#CT
+youxuan.cf.090227.xyz#CT
+cf.877774.xyz#CT
+cf.tencentapp.cn#CT
