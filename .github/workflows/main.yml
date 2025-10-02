@@ -2,8 +2,9 @@ name: Update IP List
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # UTC 0 → 香港 08:00
-    - cron: '0 12 * * *' # UTC 12 → 香港 20:00
+    # 香港时间 06:00 和 18:00
+    - cron: '22 23 * * *'  # UTC 22:00 → 香港 06:00
+    - cron: '10 0 * * *'   # UTC 10:00 → 香港 18:00
   workflow_dispatch:
 
 jobs:
