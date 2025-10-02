@@ -2,10 +2,9 @@ name: Update IP List
 
 on:
   schedule:
-    # 每天香港时间 08:00 和 20:00
-    - cron: '0 0 * * *'  # UTC 0 点 → 香港 08:00
-    - cron: '0 12 * * *' # UTC 12 点 → 香港 20:00
-  workflow_dispatch: # 手动触发
+    - cron: '0 0 * * *'  # UTC 0 → 香港 08:00
+    - cron: '0 12 * * *' # UTC 12 → 香港 20:00
+  workflow_dispatch:
 
 jobs:
   update:
@@ -40,6 +39,11 @@ jobs:
           else
             echo "No stash to apply"
           fi
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install requests beautifulsoup4
 
       - name: Run Python script
         run: python3 collect_telecom_ips.py
