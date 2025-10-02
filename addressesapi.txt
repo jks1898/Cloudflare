@@ -1,8 +1,6 @@
+youxuan.cf.090227.xyz#CT
 172.64.153.123#CT
 172.64.159.169#CT
 104.18.43.219#CT
 172.64.38.110#CT
 172.64.150.112#CT
-youxuan.cf.090227.xyz#CT
-cf.877774.xyz#CT
-cf.tencentapp.cn#CT
