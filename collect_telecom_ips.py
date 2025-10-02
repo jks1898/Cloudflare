@@ -5,7 +5,8 @@ import re
 # ---------- 配置 ----------
 url = "https://www.wetest.vip/page/cloudflare/total_v4.html"
 fixed_domains = [
-    "youxuan.cf.090227.xyz#CT"  # 固定优选域名，永远放前
+    "youxuan.cf.090227.xyz#CT",
+    "dx.changchen.filegear-sg.me#CT"
 ]
 output_file = "addressesapi.txt"
 
@@ -39,8 +40,8 @@ ip_delay_list.sort(key=lambda x: x[1])
 top_ips_from_web = [ip for ip, _ in ip_delay_list[:5]]
 
 # ---------- 合并最终列表 ----------
-# 固定域名放前面，抓取 IP 放后面
-final_list = fixed_domains + [f"{ip}#CT" for ip in top_ips_from_web]
+# 抓取 IP 放前面，固定域名放最后
+final_list = [f"{ip}#CT" for ip in top_ips_from_web] + fixed_domains
 
 # ---------- 写入文件 ----------
 with open(output_file, 'w', encoding='utf-8') as f:
