@@ -2,9 +2,10 @@ name: Update IP List
 
 on:
   schedule:
-    # 香港时间 06:00 和 18:00
-    - cron: '22 23 * * *'  # UTC 22:00 → 香港 06:00
-    - cron: '10 0 * * *'   # UTC 10:00 → 香港 18:00
+    # 香港 06:00 (UTC 前一天 22:00)
+    - cron: '0 22 * * *'
+    # 香港 18:00 (UTC 10:00)
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,30 +17,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
+          fetch-depth: 0   # 拉完整分支，避免 rebase 问题
 
       - name: Set Git user
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-
-      - name: Stash local changes
-        run: |
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "No changes to stash"
-          else
-            git stash push -m "auto-stash-before-update"
-          fi
-
-      - name: Pull latest changes
-        run: git pull --rebase origin master
-
-      - name: Apply stashed changes
-        run: |
-          if git stash list | grep -q "auto-stash-before-update"; then
-            git stash pop
-          else
-            echo "No stash to apply"
-          fi
 
       - name: Install dependencies
         run: |
@@ -54,7 +37,7 @@ jobs:
           git add addressesapi.txt
           if ! git diff --cached --quiet; then
             git commit -m "Update addressesapi.txt [skip ci]"
-            git push origin master
+            git push origin HEAD
           else
             echo "No changes to commit"
           fi
