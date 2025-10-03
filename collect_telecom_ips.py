@@ -41,11 +41,11 @@ if not ip_delay_list:
 # ---------- 按延迟升序排序 ----------
 ip_delay_list.sort(key=lambda x: x[1])
 
-# ---------- 取前 15 个延迟最低的 IP ----------
+# ---------- 取前 15 个延迟最低的 IP，并加上 #CT 备注 ----------
 top_15_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:15]]
 
-# ---------- 加入固定优选域名作为第 16 个 ----------
-top_15_ips.append("youxuan.cf.090227.xyz")
+# ---------- 加入固定优选域名作为第 16 个，并加上 #CT 备注 ----------
+top_15_ips.append("youxuan.cf.090227.xyz#CT")
 
 # ---------- 写入文件（覆盖旧文件） ----------
 try:
