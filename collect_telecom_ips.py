@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import os
 
 # ---------- 配置 ----------
 url = "https://www.wetest.vip/page/cloudflare/total_v4.html"
@@ -44,6 +43,9 @@ ip_delay_list.sort(key=lambda x: x[1])
 
 # ---------- 取前 15 个延迟最低的 IP ----------
 top_15_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:15]]
+
+# ---------- 加入固定优选域名作为第 16 个 ----------
+top_15_ips.append("youxuan.cf.090227.xyz")
 
 # ---------- 写入文件（覆盖旧文件） ----------
 try:
