@@ -43,7 +43,7 @@ if not ip_delay_list:
 ip_delay_list.sort(key=lambda x: x[1])
 
 # ---------- 取前 6 个延迟最低的 IP ----------
-top_6_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:6]]
+top_12_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:12]]
 
 # ---------- 写入文件（覆盖旧文件） ----------
 try:
