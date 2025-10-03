@@ -41,17 +41,17 @@ if not ip_delay_list:
 # ---------- 按延迟升序排序 ----------
 ip_delay_list.sort(key=lambda x: x[1])
 
-# ---------- 取前 15 个延迟最低的 IP，并加上 #CT 备注 ----------
-top_15_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:15]]
+# ---------- 取前 9 个延迟最低的 IP，并加上 #CT 备注 ----------
+top_9_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:9]]
 
-# ---------- 加入固定优选域名作为第 16 个，并加上 #CT 备注 ----------
-top_15_ips.append("youxuan.cf.090227.xyz#CT")
+# ---------- 加入固定优选域名作为第 10 个，并加上 #CT 备注 ----------
+top_9_ips.append("youxuan.cf.090227.xyz#CT")
 
 # ---------- 写入文件（覆盖旧文件） ----------
 try:
     with open(output_file, 'w', encoding='utf-8') as f:
-        for entry in top_15_ips:
+        for entry in top_9_ips:
             f.write(f"{entry}\n")
-    print(f"addressesapi.txt 已更新，内容如下：{top_15_ips}")
+    print(f"addressesapi.txt 已更新，内容如下：{top_9_ips}")
 except OSError as e:
     print(f"写入文件失败: {e}")
