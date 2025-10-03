@@ -42,14 +42,14 @@ if not ip_delay_list:
 # ---------- 按延迟升序排序 ----------
 ip_delay_list.sort(key=lambda x: x[1])
 
-# ---------- 取前 12 个延迟最低的 IP ----------
-top_12_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:12]]
+# ---------- 取前 15 个延迟最低的 IP ----------
+top_15_ips = [f"{ip}#CT" for ip, _ in ip_delay_list[:15]]
 
 # ---------- 写入文件（覆盖旧文件） ----------
 try:
     with open(output_file, 'w', encoding='utf-8') as f:
-        for entry in top_12_ips:
+        for entry in top_15_ips:
             f.write(f"{entry}\n")
-    print(f"addressesapi.txt 已更新，内容如下：{top_12_ips}")
+    print(f"addressesapi.txt 已更新，内容如下：{top_15_ips}")
 except OSError as e:
     print(f"写入文件失败: {e}")
